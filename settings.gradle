@@ -1,0 +1,2 @@
+include ':app', ':Tab'
+rootProject.name='WeTabLayout'
