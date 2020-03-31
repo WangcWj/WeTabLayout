@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.util.AttributeSet;
@@ -16,11 +17,12 @@ import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.viewpager.widget.ViewPager;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -48,14 +50,33 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
 
 
     private Context mContext;
+
+    /**
+     * Tab内容的集合。
+     */
     private List<String> mTitles;
+
+    /**
+     * 控件是否已经初始化，true的话表示{@link #initView(Context, AttributeSet)}已经走过了。
+     */
     private boolean mHaveInit = false;
+
+    /**
+     * ViewPager。
+     */
     private ViewPager mViewPager;
 
+    /**
+     * TabView的父布局。是个LinearLayout。
+     */
     private LinearLayout mTabContainer;
     private int mTabContainerGravity = Gravity.CENTER;
+    private int mCurrentScrollTab = 0;
     private int mCurrentTab = 0;
 
+    /**
+     * TabView相关的配置。
+     */
     private int mTabCount;
     private int mTabLayout = -1;
     private int mTabTextSize = 14;
@@ -64,30 +85,64 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
     private boolean mTabTextStyleBold = false;
     private boolean mTabFillContainer = true;
 
-    private int mIndicatorHeight;
+    /**
+     * 下划线相关的配置。
+     */
+    private GradientDrawable mIndicatorDrawable;
+    private int mIndicatorHeight = 2;
+    private int mIndicatorWidth;
     private boolean mIndicatorEqualTabText = false;
     private int mIndicatorBottomMargin;
     private int mIndicatorColor = Color.RED;
-    private Paint mIndicatorPaint;
-
-    private IHandleTab mHandleTab;
-    private GradientDrawable mIndicatorDrawable;
-    private int mResId;
     private Rect mIndicatorRect;
+
+    /**
+     * {@link IHandleTab}TabView创建的时候，会执行该回调接口，可以另外的对TabView做一些别的操作。
+     */
+    private IHandleTab mHandleTab;
+
+    /**
+     * 记录一下滑动的相对距离，如果跟最新的一样的话就不做操作。
+     */
+    private int mLastScrollX = 0;
+
+    /**
+     * 可以给下划线设置一个资源图片。
+     */
+    private int mResId;
+
+    /**
+     * 用来测量TextView的宽度，一般是文本的显示。
+     */
     private Paint mTextPaint;
 
+    /**
+     * ViewPager滑动中的偏移量。
+     */
     private float mPositionOffset;
 
-    public void setTabLayout(int mTabLayout) {
+    private boolean mAttachSuccess = false;
+
+    private WeTabSelectedListener mTabSelectedListener;
+
+
+    public void setTabLayoutIds(int mTabLayout) {
         this.mTabLayout = mTabLayout;
     }
 
-    public void setHandleTab(@NonNull IHandleTab mHandleTab) {
+    public void addHandleTabCallBack(@NonNull IHandleTab mHandleTab) {
         this.mHandleTab = mHandleTab;
+    }
+
+    public void setTabSelectedListener(WeTabSelectedListener mTabSelectedListener) {
+        this.mTabSelectedListener = mTabSelectedListener;
     }
 
     public void setCurrentTab(int mCurrentTab) {
         this.mCurrentTab = mCurrentTab;
+        if (haveInit() && mAttachSuccess) {
+            mViewPager.setCurrentItem(mCurrentTab);
+        }
     }
 
     public void setTabFillContainer(boolean fill) {
@@ -95,7 +150,19 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
     }
 
     public void setIndicatorColor(int mIndicatorColor) {
+        this.mIndicatorColor = mIndicatorColor;
+    }
+
+    public void setIndicatorColorRes(@IdRes int mIndicatorColor) {
         this.mIndicatorColor = getColorResource(mIndicatorColor);
+    }
+
+    public void setIndicatorHeight(int mIndicatorHeight) {
+        this.mIndicatorHeight = dp2px(mIndicatorHeight);
+    }
+
+    public void setIndicatorWidth(int mIndicatorWidth) {
+        this.mIndicatorWidth = dp2px(mIndicatorWidth);
     }
 
     public void setSelectedTabTextColor(int mSelectedTabTextColor) {
@@ -120,43 +187,70 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
         mTabContainer = new LinearLayout(context);
         addView(mTabContainer);
         mIndicatorDrawable = new GradientDrawable();
-        mIndicatorPaint = new Paint();
-        mIndicatorPaint.setColor(Color.RED);
         mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mIndicatorRect = new Rect();
-        mIndicatorHeight = dp2px(2);
+        mIndicatorHeight = dp2px(mIndicatorHeight);
         mHaveInit = true;
     }
 
     private void initScrollView() {
         //设置滚动视图是否可以伸缩其内容以填充视口
         setFillViewport(true);
-        //重写onDraw方法,需要调用这个方法来清除flag
+        //重写onDraw方法,需要调用这个方法来清除flag,要不然不会执行重写的onDraw().
         setWillNotDraw(false);
         setClipChildren(false);
         setClipToPadding(false);
     }
 
+    /**
+     * 结合ViewPager，ViewPager必须设置好Adapter。
+     *
+     * @param viewPager
+     * @param titles
+     */
     public void attachToViewPager(ViewPager viewPager, String[] titles) {
-        if (!haveInit()) {
-            return;
-        }
-        if (null == viewPager || null == viewPager.getAdapter()) {
-            return;
-        }
         if (null == titles || titles.length <= 0) {
             return;
         }
+        List<String> list = Arrays.asList(titles);
+        attachToViewPager(viewPager, list);
+    }
+
+    public void attachToViewPager(ViewPager viewPager, List<String> titles) {
+        if (!checkInitState(viewPager)) {
+            return;
+        }
+        if (null == titles || titles.size() <= 0) {
+            return;
+        }
+        mTitles.clear();
+        mTitles.addAll(titles);
         this.mViewPager = viewPager;
-        mTitles = new ArrayList<>();
-        Collections.addAll(mTitles, titles);
+        mViewPager.setCurrentItem(mCurrentTab);
         viewPager.removeOnPageChangeListener(this);
         viewPager.addOnPageChangeListener(this);
         mTabContainer.removeAllViews();
         mTabCount = mTitles.size();
         createTab();
+        mAttachSuccess = true;
     }
 
+    private boolean checkInitState(ViewPager viewPager) {
+        if (!haveInit()) {
+            return false;
+        }
+        if (null == viewPager) {
+            return false;
+        }
+        if (mTitles == null) {
+            mTitles = new ArrayList<>();
+        }
+        return true;
+    }
+
+    /**
+     * 创建TabView。如果有设置Tab的布局文件，就使用布局文件，没有的话就自己创建TextView。
+     */
     private void createTab() {
         View childView;
         for (int i = 0; i < mTabCount; i++) {
@@ -191,11 +285,17 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
         }
     }
 
+    /**
+     * 选中Tab时，更改Tab的文本样式。
+     *
+     * @param selectedIndex
+     */
     private void selectedTab(int selectedIndex) {
         if (null == mTabContainer || mTabContainer.getChildCount() == 0) {
             return;
         }
         int childCount = mTabContainer.getChildCount();
+        View cView = null;
         for (int i = 0; i < childCount; i++) {
             View childAt = mTabContainer.getChildAt(i);
             TextView selected;
@@ -205,46 +305,22 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
                 selected = findTabTextView(childAt);
             }
             if (null != selected) {
+                if (i == selectedIndex) {
+                    cView = childAt;
+                }
                 selected.setTextColor(i == selectedIndex ? mSelectedTabTextColor : mDefaultTabTextColor);
             }
-
         }
-    }
-
-    private int mLastScrollX = 0;
-
-    private int getParentWidth() {
-        int width = getWidth() + getPaddingLeft() + getPaddingRight();
-        ViewGroup.LayoutParams layoutParams = getLayoutParams();
-        if (layoutParams instanceof MarginLayoutParams) {
-            MarginLayoutParams mp = (MarginLayoutParams) layoutParams;
-            width += mp.leftMargin + mp.rightMargin;
-        }
-        return width / 2;
-    }
-
-    /**
-     * HorizontalScrollView滚到当前tab,并且居中显示
-     */
-    private void scrollToCurrentTab() {
-        if (mTabCount <= 0) {
-            return;
-        }
-        View childAt = mTabContainer.getChildAt(mCurrentTab);
-        if (null == childAt) {
-            return;
-        }
-        int centerDistance = (getWidth() - childAt.getWidth()) / 2;
-        int left = childAt.getLeft();
-        Log.e("cc.wang", "WeTabLayout.scrollToCurrentTab.centerDistance  " + centerDistance + "    left   " + left);
-        int newScrollX = 0;
-        if ( mCurrentTab > 0) {
-            newScrollX += left + (int) (childAt.getWidth() * mPositionOffset);
-            newScrollX -= centerDistance;
-        }
-        if (newScrollX != mLastScrollX) {
-            mLastScrollX = newScrollX;
-            scrollTo(newScrollX, 0);
+        if (null != mTabSelectedListener) {
+            if (null != cView) {
+                mTabSelectedListener.onTabSelected(cView, selectedIndex);
+            }
+            if (mCurrentTab >= 0 && mCurrentTab < mTabContainer.getChildCount()) {
+                View childAt = mTabContainer.getChildAt(mCurrentTab);
+                if (null != childAt) {
+                    mTabSelectedListener.onPreTabSelected(childAt, mCurrentTab);
+                }
+            }
         }
     }
 
@@ -252,6 +328,15 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
         return parent.findViewWithTag(TAB_TAG);
     }
 
+    /**
+     * 设置Tab的样式 ：
+     * 1. 选中状态： 字体大小，字体颜色，加粗。
+     * 2. 默认状态：字体大小，字体颜色，加粗。
+     *
+     * @param childView
+     * @param tabView
+     * @param index
+     */
     private void setStyle(TextView childView, View tabView, int index) {
         if (null == childView || null == tabView || null == mTabContainer) {
             return;
@@ -271,12 +356,23 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
         mTabContainer.addView(tabView, index, tabLayoutParams);
     }
 
+    /**
+     * TabView不允许有背景的，有的话会遮挡下划线的。
+     *
+     * @param tabView
+     */
     private void clearBackground(View tabView) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             tabView.setBackground(null);
         }
     }
 
+    /**
+     * 给tabView默认的LayoutParams,如果子View是默认填充满布局的也就是{@link #mTabFillContainer = true}，
+     * 这时就要设置weight = 1；
+     *
+     * @return
+     */
     private LinearLayout.LayoutParams getTabLayoutParams() {
         if (mTabFillContainer) {
             return new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT, 1);
@@ -289,11 +385,13 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
         if (!haveInit()) {
             return;
         }
+        mAttachSuccess = false;
         mTabContainer.removeAllViews();
+        mViewPager.setAdapter(null);
     }
 
     /**
-     * 自定义布局的时候，
+     * 绘制下划线，下划线的本身是一个Drawable对象，其本身大小用Rect来约束。
      *
      * @param canvas
      */
@@ -314,8 +412,53 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
 
     }
 
+    /**
+     * HorizontalScrollView滚到当前tab,并且居中显示
+     */
+    private void scrollToCurrentTab() {
+
+        if (mTabCount <= 0 || mPositionOffset <= 0) {
+            return;
+        }
+        View childAt = mTabContainer.getChildAt(mCurrentScrollTab);
+        if (null == childAt) {
+            return;
+        }
+
+        int offset = (int) (mPositionOffset * childAt.getWidth());
+        int newScrollX = childAt.getLeft() + offset;
+        //布局的中心距离。
+        int centerDistance = getWidth() / 2;
+
+        int herf = 0;
+        if (mCurrentScrollTab < mTabCount - 1) {
+            View nextTab = mTabContainer.getChildAt(mCurrentScrollTab + 1);
+            if (null != nextTab) {
+                float leftDistance = childAt.getLeft() + (nextTab.getLeft() - childAt.getLeft()) * mPositionOffset;
+                float rightDistance = childAt.getRight() + (nextTab.getRight() - childAt.getRight()) * mPositionOffset;
+                herf = (int) ((rightDistance - leftDistance) / 2);
+            }
+        }
+
+        if (mCurrentScrollTab > 0 || offset > 0) {
+            //这个算的当前的Tab距离中心点的位置
+            newScrollX -= centerDistance;
+            //后面这个是下一个Tab距离中心点的位置。
+            newScrollX += herf;
+        }
+
+        Log.e("cc.wang", "WeTabLayout.scrollToCurrentTab." + newScrollX + "   herf  " + herf);
+        if (newScrollX != mLastScrollX) {
+            mLastScrollX = newScrollX;
+            scrollTo(newScrollX, 0);
+        }
+    }
+
+    /**
+     * 计算下划线的大小，用Rect来表示。该Rect用来决定Drawable的大小。
+     */
     private void computeIndicatorRect() {
-        View childAt = mTabContainer.getChildAt(mCurrentTab);
+        View childAt = mTabContainer.getChildAt(mCurrentScrollTab);
         int childCount = mTabContainer.getChildCount();
         if (null == childAt) {
             return;
@@ -323,30 +466,60 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
         int left = childAt.getLeft();
         int right = childAt.getRight();
         int bottom = childAt.getBottom();
+
+        if (mIndicatorWidth > 0) {
+            left += getTabInsert(childAt);
+            right -= getTabInsert(childAt);
+        }
+
         //当前的Tab。
         int margin = measureText(childAt, left, right);
         //滑动中的。
-        if (mCurrentTab < childCount - 1) {
-            View nextChild = mTabContainer.getChildAt(mCurrentTab + 1);
-            if (null != nextChild) {
-                float distance = (nextChild.getLeft() - left) * mPositionOffset;
+        if (mCurrentScrollTab < childCount - 1) {
+            View nextChild = mTabContainer.getChildAt(mCurrentScrollTab + 1);
+            if (null == nextChild) {
+                return;
+            }
+            //这个是要移动的距离。
+            float leftDistance = (nextChild.getLeft() - left);
+            float rightDistance = (nextChild.getRight() - right);
+            if (mIndicatorWidth <= 0) {
+                leftDistance *= mPositionOffset;
+                rightDistance *= mPositionOffset;
                 int nextMargin = measureText(nextChild, nextChild.getLeft(), nextChild.getRight());
                 margin = (int) ((nextMargin - margin) * mPositionOffset + margin);
-                left += distance;
-                right += distance;
-            }
-        }
+            } else {
 
+                int tabInsert = getTabInsert(nextChild);
+                leftDistance = (leftDistance + tabInsert) * mPositionOffset;
+                rightDistance = (rightDistance - tabInsert) * mPositionOffset;
+            }
+            left += leftDistance;
+            right += rightDistance;
+        }
         mIndicatorRect.left = left + margin;
         mIndicatorRect.top = bottom - mIndicatorHeight - mIndicatorBottomMargin;
         mIndicatorRect.right = right - margin;
         mIndicatorRect.bottom = bottom - mIndicatorBottomMargin;
     }
 
-    private int measureText(View childAt, int parentLeft, int parentRight) {
+    private int getTabInsert(View view) {
+        return (view.getWidth() - mIndicatorWidth) / 2;
+    }
+
+    /**
+     * 测量文本的宽度，包括其文本内部的DrawableLeft的图片。
+     *
+     * @param childAt
+     * @param tabLeft
+     * @param tabRight
+     * @return
+     */
+    private int measureText(View childAt, int tabLeft, int tabRight) {
         //指示器要跟文本的宽度相等。
         if (mIndicatorEqualTabText) {
             TextView tabView;
+            //childAt 可能是个ViewGroup，也可能是个TextView。
             if (childAt instanceof TextView) {
                 tabView = (TextView) childAt;
             } else {
@@ -355,8 +528,32 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
             if (null != tabView) {
                 mTextPaint.setTextSize(tabView.getTextSize());
                 float tabTextWidth = mTextPaint.measureText(tabView.getText().toString().trim());
-                int tabWidth = parentRight - parentLeft;
+                int drawableWidth = getTextViewCompoundDrawables(tabView);
+                tabTextWidth += drawableWidth;
+                int tabWidth = tabRight - tabLeft;
                 return (int) ((tabWidth - tabTextWidth) / 2);
+            }
+        }
+        return 0;
+    }
+
+    /**
+     * 如果TabView有DrawableLeft的图片的时候，也要加上图片的宽度。
+     *
+     * @param textView
+     * @return
+     */
+    private int getTextViewCompoundDrawables(TextView textView) {
+        Drawable[] compoundDrawables = textView.getCompoundDrawables();
+        if (compoundDrawables.length > 0) {
+            for (int i = 0; i < compoundDrawables.length; i++) {
+                Drawable drawable = compoundDrawables[i];
+                if (null != drawable) {
+                    int width = drawable.getBounds().width();
+                    if (width > 0) {
+                        return width;
+                    }
+                }
             }
         }
         return 0;
@@ -364,7 +561,7 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
 
     @Override
     public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-        this.mCurrentTab = position;
+        this.mCurrentScrollTab = position;
         this.mPositionOffset = positionOffset;
         scrollToCurrentTab();
         invalidate();
@@ -373,11 +570,15 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
     @Override
     public void onPageSelected(int position) {
         selectedTab(position);
+        mCurrentTab = position;
     }
 
     @Override
     public void onPageScrollStateChanged(int state) {
+        //拖动结束。
+        if (state == ViewPager.SCROLL_STATE_IDLE) {
 
+        }
     }
 
     private boolean haveInit() {

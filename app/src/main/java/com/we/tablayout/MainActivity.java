@@ -5,19 +5,32 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
+import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 
+import com.we.lib.tablayout.IHandleTab;
 import com.we.lib.tablayout.WeTabLayout;
+import com.we.lib.tablayout.WeTabSelectedListener;
 
 public class MainActivity extends AppCompatActivity {
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        WeTabLayout tabLayout = findViewById(R.id.dil_tablayout);
+        final WeTabLayout tabLayout = findViewById(R.id.dil_tablayout);
+        final WeTabLayout tabLayoutTwo = findViewById(R.id.dil_tablayout2);
+        final WeTabLayout tabLayoutThree = findViewById(R.id.dil_tablayout3);
+
+
+
         ViewPager viewPager = findViewById(R.id.viewpager);
-        final String[] titles = {"移动", "四个字的", "小灵通", "NBA", "私密电影啊", "电影", "小知识", "篮球"};
+        final String[] titles = {"移动", "四个字的", "小灵通", "这个很长电影啊", "NBA", "电影", "小知识", "篮球"};
+        final String[] titlesTwo = {"移动", "四个字的", "小灵通"};
+
+
         viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override
             public Fragment getItem(int position) {
@@ -30,10 +43,19 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        tabLayout.setTabLayout(R.layout.item_sliding_tab_layout);
+        tabLayout.setTabLayoutIds(R.layout.item_sliding_tab_layout);
         tabLayout.setIndicatorBottomMargin(10);
         tabLayout.setIndicatorEqualTabText(true);
         tabLayout.setTabFillContainer(false);
+        tabLayout.setCurrentTab(0);
+
+        tabLayoutThree.setIndicatorColor(Color.BLUE);
+        tabLayoutThree.setIndicatorHeight(4);
+        tabLayoutThree.setIndicatorWidth(50);
+
+        tabLayoutThree.attachToViewPager(viewPager,titlesTwo);
+        tabLayoutTwo.attachToViewPager(viewPager,titlesTwo);
         tabLayout.attachToViewPager(viewPager, titles);
+
     }
 }

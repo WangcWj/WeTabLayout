@@ -12,6 +12,17 @@
         android:layout_width="match_parent"
         android:layout_height="56dp" />
 
+    <com.we.lib.tablayout.WeTabLayout
+        android:id="@+id/dil_tablayout2"
+        android:layout_width="match_parent"
+        android:layout_height="56dp" />
+
+    <com.we.lib.tablayout.WeTabLayout
+        android:id="@+id/dil_tablayout3"
+        android:layout_width="match_parent"
+        android:layout_height="56dp" />
+
+
     <androidx.viewpager.widget.ViewPager
         android:id="@+id/viewpager"
         android:layout_width="match_parent"

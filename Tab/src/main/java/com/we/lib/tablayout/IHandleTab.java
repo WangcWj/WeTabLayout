@@ -12,5 +12,4 @@ public interface IHandleTab {
 
     void addTab(View tab, int index);
 
-
 }
