@@ -24,7 +24,7 @@
 ##### 2.1 `XML`布局准备：
 
 ```xml
-  <com.we.lib.tablayout.WeTabLayout
+  <WeTabLayout
         android:id="@+id/dil_tablayout"
         android:layout_width="match_parent"
         android:layout_height="56dp" />
@@ -36,7 +36,7 @@
         android:layout_marginTop="56dp" />
     
    //自定义属性示例。
-     <com.we.lib.tablayout.WeTabLayout
+     <WeTabLayout
         android:id="@+id/dil_tablayout"
         android:layout_width="match_parent"
         android:layout_height="56dp"

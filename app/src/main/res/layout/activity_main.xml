@@ -7,7 +7,7 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <com.we.lib.tablayout.WeTabLayout
+    <cn.we.tablayout.WeTabLayout
         android:id="@+id/dil_tablayout"
         android:layout_width="match_parent"
         android:layout_height="56dp"
@@ -24,7 +24,7 @@
         app:wtl_indicator_corner_radius="4dp"
         app:wtl_tab_fill_container="false" />
 
-    <com.we.lib.tablayout.WeTabLayout
+    <cn.we.tablayout.WeTabLayout
         android:id="@+id/dil_tablayout2"
         android:layout_width="match_parent"
         android:layout_height="56dp"
@@ -33,7 +33,7 @@
         app:wtl_indicator_height="2dp"
         app:wtl_indicator_width="50dp" />
 
-    <com.we.lib.tablayout.WeTabLayout
+    <cn.we.tablayout.WeTabLayout
         android:id="@+id/dil_tablayout3"
         app:wtl_tab_fill_container="true"
         android:layout_width="match_parent"

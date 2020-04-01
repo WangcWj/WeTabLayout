@@ -11,9 +11,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
-import com.we.lib.tablayout.IHandleTab;
-import com.we.lib.tablayout.WeTabLayout;
-import com.we.lib.tablayout.WeTabSelectedListener;
+import cn.we.tablayout.WeTabLayout;
+
 
 public class MainActivity extends AppCompatActivity {
     @Override

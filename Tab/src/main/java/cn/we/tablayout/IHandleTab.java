@@ -1,4 +1,4 @@
-package com.we.lib.tablayout;
+package cn.we.tablayout;
 
 import android.view.View;
 
