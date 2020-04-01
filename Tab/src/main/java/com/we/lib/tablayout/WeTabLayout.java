@@ -1,6 +1,7 @@
 package com.we.lib.tablayout;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -10,6 +11,7 @@ import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -79,21 +81,23 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
      */
     private int mTabCount;
     private int mTabLayout = -1;
-    private int mTabTextSize = 14;
-    private int mSelectedTabTextColor = Color.RED;
-    private int mDefaultTabTextColor = Color.BLACK;
-    private boolean mTabTextStyleBold = false;
+    private int mSelectedTabTextColor ;
+    private int mDefaultTabTextColor ;
+    private float mSelectedTabTextSize ;
+    private float mDefaultTabTextSize ;
+    private boolean mSelectedTabTextStyleBold = false;
     private boolean mTabFillContainer = true;
 
     /**
      * 下划线相关的配置。
      */
     private GradientDrawable mIndicatorDrawable;
-    private int mIndicatorHeight = 2;
-    private int mIndicatorWidth;
+    private float mIndicatorHeight;
+    private float mIndicatorWidth;
     private boolean mIndicatorEqualTabText = false;
-    private int mIndicatorBottomMargin;
+    private float mIndicatorBottomMargin;
     private int mIndicatorColor = Color.RED;
+    private float mIndicatorCorner;
     private Rect mIndicatorRect;
 
     /**
@@ -158,11 +162,14 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
     }
 
     public void setIndicatorHeight(int mIndicatorHeight) {
-        this.mIndicatorHeight = dp2px(mIndicatorHeight);
+        this.mIndicatorHeight = mIndicatorHeight;
     }
 
     public void setIndicatorWidth(int mIndicatorWidth) {
-        this.mIndicatorWidth = dp2px(mIndicatorWidth);
+        if(mIndicatorEqualTabText){
+            mIndicatorWidth = 0;
+        }
+        this.mIndicatorWidth = mIndicatorWidth;
     }
 
     public void setSelectedTabTextColor(int mSelectedTabTextColor) {
@@ -174,7 +181,7 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
     }
 
     public void setIndicatorBottomMargin(int margin) {
-        this.mIndicatorBottomMargin = dp2px(margin);
+        this.mIndicatorBottomMargin = margin;
     }
 
     public void setIndicatorEqualTabText(boolean mIndicatorEqualTabText) {
@@ -182,6 +189,41 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
     }
 
     private void initView(Context context, AttributeSet attrs) {
+        loadAttribute(context, attrs);
+        inflateOther(context);
+    }
+
+    private void loadAttribute(Context context, AttributeSet attrs) {
+        TypedArray array = null;
+        try {
+            array = context.obtainStyledAttributes(attrs, R.styleable.WeTabLayout);
+            mIndicatorColor = array.getColor(R.styleable.WeTabLayout_wtl_indicator_color, Color.BLACK);
+            mIndicatorHeight = array.getDimension(R.styleable.WeTabLayout_wtl_indicator_height, 1);
+            mIndicatorWidth = array.getDimension(R.styleable.WeTabLayout_wtl_indicator_width, 0);
+            mIndicatorBottomMargin = array.getDimension(R.styleable.WeTabLayout_wtl_indicator_margin_bottom, 0);
+            mIndicatorEqualTabText = array.getBoolean(R.styleable.WeTabLayout_wtl_indicator_width_equal_title, false);
+            mIndicatorCorner = array.getDimension(R.styleable.WeTabLayout_wtl_indicator_corner_radius, 0);
+
+            if(mIndicatorEqualTabText){
+                mIndicatorWidth = 0;
+            }
+
+            mSelectedTabTextColor = array.getColor(R.styleable.WeTabLayout_wtl_selected_text_color, Color.BLACK);
+            mDefaultTabTextColor = array.getColor(R.styleable.WeTabLayout_wtl_default_text_color, Color.GRAY);
+            mDefaultTabTextSize = array.getDimension(R.styleable.WeTabLayout_wtl_default_text_size, sp2px(12));
+            mSelectedTabTextSize = array.getDimension(R.styleable.WeTabLayout_wtl_selected_text_size, sp2px(14));
+            mSelectedTabTextStyleBold = array.getBoolean(R.styleable.WeTabLayout_wtl_selected_text_bold, false);
+            mTabFillContainer = array.getBoolean(R.styleable.WeTabLayout_wtl_tab_fill_container, false);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (null != array) {
+                array.recycle();
+            }
+        }
+    }
+
+    private void inflateOther(Context context) {
         initScrollView();
         mContext = context;
         mTabContainer = new LinearLayout(context);
@@ -189,7 +231,6 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
         mIndicatorDrawable = new GradientDrawable();
         mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mIndicatorRect = new Rect();
-        mIndicatorHeight = dp2px(mIndicatorHeight);
         mHaveInit = true;
     }
 
@@ -308,7 +349,7 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
                 if (i == selectedIndex) {
                     cView = childAt;
                 }
-                selected.setTextColor(i == selectedIndex ? mSelectedTabTextColor : mDefaultTabTextColor);
+                setSelectedTabStyle(selected, i == selectedIndex);
             }
         }
         if (null != mTabSelectedListener) {
@@ -321,6 +362,14 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
                     mTabSelectedListener.onPreTabSelected(childAt, mCurrentTab);
                 }
             }
+        }
+    }
+
+    private void setSelectedTabStyle(TextView selected, boolean isSelected) {
+        selected.setTextColor(isSelected ? mSelectedTabTextColor : mDefaultTabTextColor);
+        selected.setTextSize(TypedValue.COMPLEX_UNIT_PX,isSelected ? mSelectedTabTextSize : mDefaultTabTextSize);
+        if (mSelectedTabTextStyleBold) {
+            selected.getPaint().setFakeBoldText(isSelected);
         }
     }
 
@@ -346,11 +395,8 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
         clearBackground(childView);
 
         childView.setText(mTitles.get(index));
-        childView.setTextSize(mTabTextSize);
-        childView.setTextColor(index == mCurrentTab ? mSelectedTabTextColor : mDefaultTabTextColor);
         childView.setGravity(Gravity.CENTER);
-        childView.getPaint().setFakeBoldText(mTabTextStyleBold);
-
+        setSelectedTabStyle(childView, index == mCurrentTab);
         LinearLayout.LayoutParams tabLayoutParams = getTabLayoutParams();
         mTabContainer.setGravity(mTabContainerGravity);
         mTabContainer.addView(tabView, index, tabLayoutParams);
@@ -446,8 +492,6 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
             //后面这个是下一个Tab距离中心点的位置。
             newScrollX += herf;
         }
-
-        Log.e("cc.wang", "WeTabLayout.scrollToCurrentTab." + newScrollX + "   herf  " + herf);
         if (newScrollX != mLastScrollX) {
             mLastScrollX = newScrollX;
             scrollTo(newScrollX, 0);
@@ -466,7 +510,6 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
         int left = childAt.getLeft();
         int right = childAt.getRight();
         int bottom = childAt.getBottom();
-
         if (mIndicatorWidth > 0) {
             left += getTabInsert(childAt);
             right -= getTabInsert(childAt);
@@ -488,8 +531,7 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
                 rightDistance *= mPositionOffset;
                 int nextMargin = measureText(nextChild, nextChild.getLeft(), nextChild.getRight());
                 margin = (int) ((nextMargin - margin) * mPositionOffset + margin);
-            } else {
-
+            } else if(!mIndicatorEqualTabText){
                 int tabInsert = getTabInsert(nextChild);
                 leftDistance = (leftDistance + tabInsert) * mPositionOffset;
                 rightDistance = (rightDistance - tabInsert) * mPositionOffset;
@@ -498,13 +540,13 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
             right += rightDistance;
         }
         mIndicatorRect.left = left + margin;
-        mIndicatorRect.top = bottom - mIndicatorHeight - mIndicatorBottomMargin;
+        mIndicatorRect.top = bottom - (int)mIndicatorHeight - (int) mIndicatorBottomMargin;
         mIndicatorRect.right = right - margin;
-        mIndicatorRect.bottom = bottom - mIndicatorBottomMargin;
+        mIndicatorRect.bottom = bottom - (int)mIndicatorBottomMargin;
     }
 
     private int getTabInsert(View view) {
-        return (view.getWidth() - mIndicatorWidth) / 2;
+        return (view.getWidth() - (int)mIndicatorWidth) / 2;
     }
 
     /**
@@ -587,6 +629,10 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
 
     private int dp2px(int px) {
         return (int) (getContext().getResources().getDisplayMetrics().density * px + 0.5f);
+    }
+
+    private int sp2px(int px) {
+        return (int) (getContext().getResources().getDisplayMetrics().scaledDensity * px + 0.5f);
     }
 
     private int getColorResource(int color) {

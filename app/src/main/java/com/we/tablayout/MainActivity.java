@@ -44,14 +44,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         tabLayout.setTabLayoutIds(R.layout.item_sliding_tab_layout);
-        tabLayout.setIndicatorBottomMargin(10);
-        tabLayout.setIndicatorEqualTabText(true);
-        tabLayout.setTabFillContainer(false);
-        tabLayout.setCurrentTab(0);
 
-        tabLayoutThree.setIndicatorColor(Color.BLUE);
-        tabLayoutThree.setIndicatorHeight(4);
-        tabLayoutThree.setIndicatorWidth(50);
 
         tabLayoutThree.attachToViewPager(viewPager,titlesTwo);
         tabLayoutTwo.attachToViewPager(viewPager,titlesTwo);

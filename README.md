@@ -19,7 +19,7 @@
 
 ##### 2.1 `XML`布局准备：
 
-```java
+```xml
   <com.we.lib.tablayout.WeTabLayout
         android:id="@+id/dil_tablayout"
         android:layout_width="match_parent"
@@ -30,7 +30,59 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="56dp" />
+    
+   //自定义属性示例。
+     <com.we.lib.tablayout.WeTabLayout
+        android:id="@+id/dil_tablayout"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        app:wtl_default_text_color="@color/colorPrimary"
+        app:wtl_indicator_margin_bottom="10dp"
+        app:wtl_indicator_width_equal_title="true"
+        app:wtl_selected_text_color="@color/colorAccent"
+        app:wtl_indicator_color="@color/colorAccent"
+        app:wtl_selected_text_size="16sp"
+        app:wtl_default_text_size="12sp"
+        app:wtl_indicator_height="1dp"
+        app:wtl_indicator_width="50dp"
+        app:wtl_selected_text_bold="true"
+        app:wtl_indicator_corner_radius="4dp"
+        app:wtl_tab_fill_container="false" />   
 ```
+
+具体字段解释：
+
+```xml
+ <declare-styleable name="WeTabLayout">
+        <!-- indicator -->
+        //下划线的颜色。
+        <attr name="wtl_indicator_color" format="color" />
+        //下划线的高度。
+        <attr name="wtl_indicator_height" format="dimension" />
+        //下划线的宽度。
+        <attr name="wtl_indicator_width" format="dimension" />
+        //下划线距离底部的Margin。
+        <attr name="wtl_indicator_margin_bottom" format="dimension" />
+        //下划线的圆角。
+        <attr name="wtl_indicator_corner_radius" format="dimension" />
+        //下划线是否的宽度是否跟文本的宽度一样。 true是。
+        <attr name="wtl_indicator_width_equal_title" format="boolean" />
+        //Tab被选中时的文字大小。
+        <attr name="wtl_selected_text_size" format="dimension" />
+        //Tab默认时的文字大小。
+        <attr name="wtl_default_text_size" format="dimension" />
+        //Tab被选中时的文本的颜色。
+        <attr name="wtl_selected_text_color" format="color" />
+        //Tab默认时的文字大小。
+        <attr name="wtl_default_text_color" format="color" />
+        //Tab被选中时是否加粗 true 是。
+        <attr name="wtl_selected_text_bold" format="boolean" />
+        //Tab是否填充满父View，true 是。
+        <attr name="wtl_tab_fill_container" format="boolean" />
+    </declare-styleable>
+```
+
+**属性使用注意：** `wtl_indicator_width_equal_title`跟`wtl_indicator_width`同时设置的时候，以前者为主。
 
 ##### 2.2 代码设置：
 

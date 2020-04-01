@@ -10,15 +10,32 @@
     <com.we.lib.tablayout.WeTabLayout
         android:id="@+id/dil_tablayout"
         android:layout_width="match_parent"
-        android:layout_height="56dp" />
+        android:layout_height="56dp"
+        app:wtl_default_text_color="@color/colorPrimary"
+        app:wtl_indicator_margin_bottom="10dp"
+        app:wtl_indicator_width_equal_title="true"
+        app:wtl_selected_text_color="@color/colorAccent"
+        app:wtl_indicator_color="@color/colorAccent"
+        app:wtl_selected_text_size="16sp"
+        app:wtl_default_text_size="12sp"
+        app:wtl_indicator_height="1dp"
+        app:wtl_indicator_width="50dp"
+        app:wtl_selected_text_bold="true"
+        app:wtl_indicator_corner_radius="4dp"
+        app:wtl_tab_fill_container="false" />
 
     <com.we.lib.tablayout.WeTabLayout
         android:id="@+id/dil_tablayout2"
         android:layout_width="match_parent"
-        android:layout_height="56dp" />
+        android:layout_height="56dp"
+        app:wtl_tab_fill_container="true"
+        app:wtl_indicator_color="@android:color/holo_blue_light"
+        app:wtl_indicator_height="2dp"
+        app:wtl_indicator_width="50dp" />
 
     <com.we.lib.tablayout.WeTabLayout
         android:id="@+id/dil_tablayout3"
+        app:wtl_tab_fill_container="true"
         android:layout_width="match_parent"
         android:layout_height="56dp" />
 

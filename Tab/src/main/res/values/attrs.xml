@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="WeTabLayout">
+        <!-- indicator -->
+        <attr name="wtl_indicator_color" format="color" />
+        <attr name="wtl_indicator_height" format="dimension" />
+        <attr name="wtl_indicator_width" format="dimension" />
+        <attr name="wtl_indicator_margin_bottom" format="dimension" />
+        <attr name="wtl_indicator_corner_radius" format="dimension" />
+        <attr name="wtl_indicator_width_equal_title" format="boolean" />
+
+        <!-- title -->
+        <attr name="wtl_selected_text_size" format="dimension" />
+        <attr name="wtl_default_text_size" format="dimension" />
+        <attr name="wtl_selected_text_color" format="color" />
+        <attr name="wtl_default_text_color" format="color" />
+
+        <attr name="wtl_selected_text_bold" format="boolean" />
+
+        <attr name="wtl_tab_fill_container" format="boolean" />
+
+
+    </declare-styleable>
+
+</resources>
