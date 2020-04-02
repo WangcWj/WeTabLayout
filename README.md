@@ -13,11 +13,20 @@
 3. 完全自定义的`Indicator`指示器，通俗一点就是下划线。其宽度、高度、颜色、样式、图片全部支持。
 4. 开关控制`Indicator`指示器的宽度是否跟`Tab`显示的文本宽度一样。
 5. `TabView`支持自定义布局或者使用默认布局。其`TabView`在父布局中的位置，以及各个`TabView`之间的间距，完全自定义，也可选择`TabView`填充满父布局。
-6. 最重要的是`WeTabLayout`的源码简单，可以自行定制。
+6. 支持`TabView`的左右padding。
+7. 最重要的是`WeTabLayout`的源码简单，可以自行定制。
 #### 注意：
-为了能够及时的发现并更正该库所存在的问题，现邀请大家加入该微信群中，三人行必有我师，Android技术是无止境的。
+1. 为了能够及时的发现并更正该库所存在的问题，现邀请大家加入该微信群中，三人行必有我师，Android技术是无止境的。
+2. 当使用自定义Tab布局的时候，其设置的padding值，不要跟属性`wtl_tab_padding_left`和`wtl_tab_padding_right`的值冲突。
+3. 默认可以不用设置`TabView`的自定义布局，也就是可以不用给`mTabLayout`属性赋值，如果设置自定义布局的话，自定义布局的背景色会被忽略掉。
 
-先加入QQ群 684891631 再转微信群~
+有问题可以先加入`QQ`群` 684891631 `再转微信群~
+
+##### 更新日志：
+
+* 2020-04-02：
+
+  更新了`TabView`对左右padding的支持，可以随意的设置左右的padding值，下划线的位置不会错乱。
 
 #### 二 简单使用：
 
@@ -50,6 +59,8 @@
         app:wtl_indicator_height="1dp"
         app:wtl_indicator_width="50dp"
         app:wtl_selected_text_bold="true"
+        app:wtl_tab_padding_left="30dp"
+        app:wtl_tab_padding_right="16dp"
         app:wtl_indicator_corner_radius="4dp"
         app:wtl_tab_fill_container="false" />   
 ```
@@ -83,10 +94,16 @@
         <attr name="wtl_selected_text_bold" format="boolean" />
         //Tab是否填充满父View，true 是。
         <attr name="wtl_tab_fill_container" format="boolean" />
+        //Tab的左padding。 
+        <attr name="wtl_tab_padding_left" format="dimension" />
+        //Tab的右padding。
+        <attr name="wtl_tab_padding_right" format="dimension" />
     </declare-styleable>
 ```
 
-**属性使用注意：** `wtl_indicator_width_equal_title`跟`wtl_indicator_width`同时设置的时候，以前者为主。
+**属性使用注意：** 
+
+1. `wtl_indicator_width_equal_title`跟`wtl_indicator_width`同时设置的时候，以前者为主。
 
 ##### 2.2 代码设置：
 
@@ -100,36 +117,6 @@ tabLayout.attachToViewPager(viewPager, titles);
 ```
 
 **注意：** 调用 `tabLayout.setCurrentTab()`方法设置默认选中的`Tab`的时候，必须在`ViewPager`设置`Adapter`之后。
-
-##### 2.3 更多属性设置：
-
-```java
-   //设置tabView的布局id，比如:R.layout.item_sliding_tab_layout. 
-   public void setTabLayoutIds(int mTabLayout) {}
-   //这是一个接口回调，当WeTabLayout创建每个TabView的时候，会调用IHandleTab接口的方法。
-   //可以再改回调中改变一下TabView的一些属性。
-   public void addHandleTabCallBack(@NonNull IHandleTab mHandleTab)}
-   //设置Tab选中之后的回调。
-   public void setTabSelectedListener(WeTabSelectedListener mTabSelectedListener) {}
-   //设置选中的Tab根据传入的index。
-   public void setCurrentTab(int mCurrentTab) {}
-   //设置TabView填充满WeTabLayout。其原理就是给每个TabView设置whight = 1。
-   public void setTabFillContainer(boolean fill) {}
-   //设置下划线的颜色。
-   public void setIndicatorColor(int mIndicatorColor) {}
-   //设置下划线的高度，不需要转换成dp。
-   public void setIndicatorHeight(int mIndicatorHeight) {}
-   //设置下划线的宽度，不需要转换成dp。
-   public void setIndicatorWidth(int mIndicatorWidth) {}
-   //设置tab选中时文本的颜色。
-   public void setSelectedTabTextColor(int mSelectedTabTextColor) {}
-   //设置tab未选中时文本的颜色。
-   public void setDefaultTabTextColor(int mDefaultTabTextColor) {}
-   //设置下划线距离底部的margin。
-   public void setIndicatorBottomMargin(int margin) {}
-   //true 下划线的宽度跟Tab文本的宽度一样。 false的话 下划线的宽度跟TabView的宽度一样。
-   public void setIndicatorEqualTabText(boolean mIndicatorEqualTabText) {}
-```
 
 ##### 2.4 属性应用Demo：
 
