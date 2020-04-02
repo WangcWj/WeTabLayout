@@ -17,6 +17,10 @@
         <attr name="wtl_default_text_color" format="color" />
 
         <attr name="wtl_selected_text_bold" format="boolean" />
+        <!--Tab-->
+        <attr name="wtl_tab_padding_left" format="dimension" />
+        <attr name="wtl_tab_padding_right" format="dimension" />
+
 
         <attr name="wtl_tab_fill_container" format="boolean" />
 

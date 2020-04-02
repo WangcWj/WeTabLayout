@@ -8,6 +8,7 @@ import androidx.viewpager.widget.ViewPager;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.TextView;
 
@@ -44,10 +45,10 @@ public class MainActivity extends AppCompatActivity {
 
         tabLayout.setTabLayoutIds(R.layout.item_sliding_tab_layout);
 
-
+        tabLayoutThree.setTabContainerGravity(Gravity.LEFT);
         tabLayoutThree.attachToViewPager(viewPager,titlesTwo);
-        tabLayoutTwo.attachToViewPager(viewPager,titlesTwo);
-        tabLayout.attachToViewPager(viewPager, titles);
+        /*tabLayoutTwo.attachToViewPager(viewPager,titlesTwo);
+        tabLayout.attachToViewPager(viewPager, titles);*/
 
     }
 }
