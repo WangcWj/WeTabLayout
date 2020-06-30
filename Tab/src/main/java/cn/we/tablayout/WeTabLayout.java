@@ -10,7 +10,6 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -25,10 +24,12 @@ import androidx.viewpager.widget.ViewPager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
- * Created to :
+ * Created to : 一款自定义下划线的仿TabLayout。
  *
  * @author cc.wang
  * @date 2020/1/13
@@ -132,6 +133,21 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
     private float mTabPaddingLeft = 0;
     private float mTabPaddingRight = 0;
 
+    /**
+     * Tab设置左右上下的Icon。
+     */
+    private Map<String,WeTabDrawable> mTabDrawables;
+
+    public WeTabLayout addTabDrawable(WeTabDrawable drawable){
+        if(null == drawable){
+            return this;
+        }
+        if(null == mTabDrawables){
+            mTabDrawables = new HashMap<>();
+        }
+        mTabDrawables.put(drawable.getTabName(),drawable);
+        return this;
+    }
 
     public void setTabLayoutIds(int mTabLayout) {
         this.mTabLayout = mTabLayout;
@@ -399,6 +415,18 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
         if (null == childView || null == tabView || null == mTabContainer) {
             return;
         }
+
+        String title = mTitles.get(index);
+        if(null != mTabDrawables){
+            WeTabDrawable weTabDrawable = mTabDrawables.get(title);
+            if(null != weTabDrawable){
+                childView.setCompoundDrawables(
+                        measureDrawable(weTabDrawable.getDrawableByGravity(Gravity.LEFT)),
+                        measureDrawable(weTabDrawable.getDrawableByGravity(Gravity.TOP)),
+                        measureDrawable(weTabDrawable.getDrawableByGravity(Gravity.RIGHT)),
+                        measureDrawable(weTabDrawable.getDrawableByGravity(Gravity.BOTTOM)));
+            }
+        }
         //如果布局有背景的时候，要清掉，不清掉的时候会遮挡住绘制的指示器。
         clearBackground(tabView);
         clearBackground(childView);
@@ -409,6 +437,13 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
         LinearLayout.LayoutParams tabLayoutParams = getTabLayoutParams();
         mTabContainer.setGravity(mTabContainerGravity);
         mTabContainer.addView(tabView, index, tabLayoutParams);
+    }
+
+    public Drawable measureDrawable(Drawable drawable){
+        if(null != drawable){
+            drawable.setBounds(0, 0, drawable.getMinimumWidth(), drawable.getMinimumHeight());
+        }
+        return drawable;
     }
 
     /**
