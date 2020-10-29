@@ -2,10 +2,13 @@ package cn.we.tablayout;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
@@ -18,6 +21,7 @@ import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.DrawableRes;
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.viewpager.widget.ViewPager;
@@ -92,7 +96,7 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
     /**
      * 下划线相关的配置。
      */
-    private GradientDrawable mIndicatorDrawable;
+    private Drawable mIndicatorDrawable;
     private float mIndicatorHeight;
     private float mIndicatorWidth;
     private boolean mIndicatorEqualTabText = false;
@@ -136,17 +140,28 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
     /**
      * Tab设置左右上下的Icon。
      */
-    private Map<String,WeTabDrawable> mTabDrawables;
+    private Map<String, WeTabDrawable> mTabDrawables;
 
-    public WeTabLayout addTabDrawable(WeTabDrawable drawable){
-        if(null == drawable){
+    public WeTabLayout addTabDrawable(WeTabDrawable drawable) {
+        if (null == drawable) {
             return this;
         }
-        if(null == mTabDrawables){
+        if (null == mTabDrawables) {
             mTabDrawables = new HashMap<>();
         }
-        mTabDrawables.put(drawable.getTabName(),drawable);
+        mTabDrawables.put(drawable.getTabName(), drawable);
         return this;
+    }
+
+    public void setIndicatorResId(@DrawableRes int id) {
+        try {
+            Bitmap bitmap = BitmapFactory.decodeResource(getResources(), id);
+            if (null != bitmap) {
+                mIndicatorDrawable = new BitmapDrawable(getResources(), bitmap);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void setTabLayoutIds(int mTabLayout) {
@@ -417,9 +432,9 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
         }
 
         String title = mTitles.get(index);
-        if(null != mTabDrawables){
+        if (null != mTabDrawables) {
             WeTabDrawable weTabDrawable = mTabDrawables.get(title);
-            if(null != weTabDrawable){
+            if (null != weTabDrawable) {
                 childView.setCompoundDrawables(
                         measureDrawable(weTabDrawable.getDrawableByGravity(Gravity.LEFT)),
                         measureDrawable(weTabDrawable.getDrawableByGravity(Gravity.TOP)),
@@ -439,8 +454,8 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
         mTabContainer.addView(tabView, index, tabLayoutParams);
     }
 
-    public Drawable measureDrawable(Drawable drawable){
-        if(null != drawable){
+    public Drawable measureDrawable(Drawable drawable) {
+        if (null != drawable) {
             drawable.setBounds(0, 0, drawable.getMinimumWidth(), drawable.getMinimumHeight());
         }
         return drawable;
@@ -496,10 +511,11 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
         }
         computeIndicatorRect();
 
-        mIndicatorDrawable.setColor(mIndicatorColor);
+        if (mIndicatorDrawable instanceof GradientDrawable) {
+            ((GradientDrawable) mIndicatorDrawable).setColor(mIndicatorColor);
+        }
         mIndicatorDrawable.setBounds(mIndicatorRect);
         mIndicatorDrawable.draw(canvas);
-
     }
 
     /**
@@ -601,7 +617,7 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
     /**
      * 处理TabView的Padding问题。
      *
-     * @param left 是否是左padding。
+     * @param left   是否是左padding。
      * @param margin 该值是当下划线的宽度要跟文本的宽度一致的时候，TabView左右的剩余间距。
      * @return
      */

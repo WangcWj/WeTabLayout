@@ -39,13 +39,13 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public int getCount() {
-                return titles.length;
+                return titlesTwo.length;
             }
         });
 
-        tabLayout.setTabLayoutIds(R.layout.item_sliding_tab_layout);
 
         tabLayoutThree.setTabContainerGravity(Gravity.LEFT);
+        tabLayoutThree.setIndicatorResId(R.mipmap.ic_vip_logo);
         tabLayoutThree.attachToViewPager(viewPager,titlesTwo);
         /*tabLayoutTwo.attachToViewPager(viewPager,titlesTwo);
         tabLayout.attachToViewPager(viewPager, titles);*/
