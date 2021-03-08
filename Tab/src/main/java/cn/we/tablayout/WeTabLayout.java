@@ -164,6 +164,13 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
         }
     }
 
+    public void setIndicatorCorner(float indicatorCorner) {
+        this.mIndicatorCorner = mIndicatorCorner;
+        if (mIndicatorDrawable instanceof GradientDrawable) {
+            ((GradientDrawable) mIndicatorDrawable).setCornerRadius(mIndicatorCorner);
+        }
+    }
+
     public void setTabLayoutIds(int mTabLayout) {
         this.mTabLayout = mTabLayout;
     }
