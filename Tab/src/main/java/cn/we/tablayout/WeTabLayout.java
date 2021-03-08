@@ -246,7 +246,6 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
             if (mIndicatorEqualTabText) {
                 mIndicatorWidth = 0;
             }
-
             mSelectedTabTextColor = array.getColor(R.styleable.WeTabLayout_wtl_selected_text_color, Color.BLACK);
             mDefaultTabTextColor = array.getColor(R.styleable.WeTabLayout_wtl_default_text_color, Color.GRAY);
             mDefaultTabTextSize = array.getDimension(R.styleable.WeTabLayout_wtl_default_text_size, sp2px(12));
@@ -268,6 +267,9 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
         mTabContainer = new LinearLayout(context);
         addView(mTabContainer);
         mIndicatorDrawable = new GradientDrawable();
+        if (mIndicatorCorner > 0) {
+            ((GradientDrawable) mIndicatorDrawable).setCornerRadius(mIndicatorCorner);
+        }
         mTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mIndicatorRect = new Rect();
         mHaveInit = true;
