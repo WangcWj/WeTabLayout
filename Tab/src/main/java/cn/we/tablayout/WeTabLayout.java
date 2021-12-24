@@ -230,6 +230,9 @@ public class WeTabLayout extends HorizontalScrollView implements ViewPager.OnPag
     }
 
     public void setIndicatorEqualTabText(boolean mIndicatorEqualTabText) {
+        if (mIndicatorEqualTabText) {
+            mIndicatorWidth = 0;
+        }
         this.mIndicatorEqualTabText = mIndicatorEqualTabText;
     }
 
